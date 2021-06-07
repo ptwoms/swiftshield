@@ -53,6 +53,7 @@ extension SourceKitObfuscator {
             self.dataStore.indexedFiles.append(indexedFile)
         }
         dataStore.plists = dataStore.plists.union(module.plists)
+        dataStore.uiFiles = dataStore.uiFiles.union(module.uiFiles)
     }
 
     func preprocess(
@@ -144,6 +145,9 @@ extension SourceKitObfuscator {
         try dataStore.plists.forEach { plist in
             try obfuscate(plist: plist)
         }
+        try dataStore.uiFiles.forEach { uiFile in
+            try obfuscate(uiFile: uiFile)
+        }
         return ConversionMap(obfuscationDictionary: dataStore.obfuscationDictionary)
     }
 
@@ -195,6 +199,45 @@ extension SourceKitObfuscator {
         let newPlist = data
         if let error = delegate?.obfuscator(self, didObfuscateFile: plist, newContents: newPlist) {
             throw error
+        }
+    }
+    
+    func obfuscate(uiFile: File) throws {
+        let xmlDoc = try XMLDocument(contentsOf: URL(fileURLWithPath: uiFile.path), options: XMLNode.Options())
+        guard let rootElement = xmlDoc.rootElement() else { return }
+        logger.log("--- Obfuscating \(uiFile.name)")
+        obfuscateIBXML(element: rootElement)
+        let origStr = try uiFile.read()
+        var newUIFile = xmlDoc.xmlString(options: [.nodePrettyPrint, .nodeCompactEmptyElement])
+        let xmlLineRegex = "<\\?xml version=.*?\\?>"
+        if let oldXMLRange = origStr.range(of: xmlLineRegex, options: .regularExpression) {
+            newUIFile.replaceFirst(regex: xmlLineRegex, with: String(origStr[oldXMLRange]))
+        }
+        if let error = delegate?.obfuscator(self, didObfuscateFile: uiFile, newContents: newUIFile) {
+            throw error
+        }
+    }
+    
+    private func obfuscateIBXML(element: XMLElement) {
+        if let attribElement = element.attribute(forName: "customClass"), let attribStr = attribElement.stringValue, !attribStr.isEmpty, let obfuscatedClassName = dataStore.obfuscationDictionary[attribStr], !obfuscatedClassName.isEmpty {
+            attribElement.stringValue = obfuscatedClassName
+        }
+        if element.name == "action", let selectorElement = element.attribute(forName: "selector"), element.parent?.name == "connections", let selectorStr = selectorElement.stringValue, !selectorStr.isEmpty {
+            if selectorStr.contains(":") {
+                var selectorComps = selectorStr.components(separatedBy: ":")
+                if let firstSelectorName = selectorComps.first, !firstSelectorName.isEmpty, let obfuscatedName = dataStore.obfuscationDictionary[firstSelectorName], !obfuscatedName.isEmpty {
+                    selectorComps[0] = obfuscatedName
+                    selectorElement.stringValue = selectorComps.joined(separator: ":")
+                }
+            }else{
+                if let obfuscatedName = dataStore.obfuscationDictionary[selectorStr], !obfuscatedName.isEmpty {
+                    selectorElement.stringValue = obfuscatedName
+                }
+            }
+        }
+        for child in element.children ?? [] {
+            guard let childElement = child as? XMLElement else { continue }
+            obfuscateIBXML(element: childElement)
         }
     }
 

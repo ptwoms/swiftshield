@@ -117,7 +117,7 @@ final class SchemeInfoProviderTests: XCTestCase {
         return Module(
             name: "ExampleProject",
             sourceFiles: [vc, appDelegate, sceneDelegate],
-            plists: [info],
+            plists: [info], uiFiles: [],
             compilerArguments: []
         )
     }
@@ -129,7 +129,7 @@ final class SchemeInfoProviderTests: XCTestCase {
         return Module(
             name: "AnotherTarget",
             sourceFiles: [source],
-            plists: [info, customPlist],
+            plists: [info, customPlist], uiFiles: [],
             compilerArguments: []
         )
     }
@@ -250,6 +250,6 @@ final class SchemeInfoProviderTests: XCTestCase {
 extension Module {
     // The compiler args change all the time, so its best to ignore them.
     var withoutCompilerArgs: Module {
-        Module(name: name, sourceFiles: sourceFiles, plists: plists, compilerArguments: [])
+        Module(name: name, sourceFiles: sourceFiles, plists: plists, uiFiles: [], compilerArguments: [])
     }
 }

@@ -11,7 +11,7 @@ struct SchemeInfoProvider: SchemeInfoProviderProtocol {
         projectFile.path.hasSuffix(".xcworkspace")
     }
 
-    private typealias MutableModuleData = (source: [File], plists: [File], args: [String], order: Int)
+    private typealias MutableModuleData = (source: [File], plists: [File], userInterfaces: [File], args: [String], order: Int)
     private typealias MutableModuleDictionary = [String: MutableModuleData]
 
     func getModulesFromProject() throws -> [Module] {
@@ -46,12 +46,16 @@ struct SchemeInfoProvider: SchemeInfoProviderProtocol {
                 line.hasPrefix("CopyPlistFile") ||
                 line.hasPrefix("Preprocess") {
                 try parsePlistPhase(line: line + lines[index + 1], modules: &modules)
+            }else if line.hasPrefix("CompileStoryboard") ||
+                line.hasPrefix("CompileXIB") {
+                try parseUIsPhase(line: line + lines[index + 1] + lines[index + 2] + lines[index + 3], modules: &modules)
             }
         }
         return modules.filter { modulesToIgnore.contains($0.key) == false }.sorted { $0.value.order < $1.value.order }.map {
             Module(name: $0.key,
                    sourceFiles: Set($0.value.source),
                    plists: Set($0.value.plists.removeDuplicates()),
+                   uiFiles: Set($0.value.userInterfaces),
                    compilerArguments: $0.value.args)
         }
     }
@@ -167,6 +171,29 @@ struct SchemeInfoProvider: SchemeInfoProviderProtocol {
         let file = File(path: plistPath.removingPlaceholder)
         add(plist: file, to: moduleName, modules: &modules)
     }
+    
+    private func parseUIsPhase(line: String, modules: inout MutableModuleDictionary) throws {
+        let prefixStoryboard = "CompileStoryboard"
+        let prefixXIB = "CompileXIB"
+        let line = line.replacingEscapedSpaces
+        guard let regex = line.match(regex: "(\(prefixStoryboard)|\(prefixXIB)) ((.*.storyboard)|(.*.xib)) ").first else {
+            return
+        }
+        let compiledUIFilePath = regex.captureGroup(2, originalString: line)
+        guard compiledUIFilePath.hasSuffix(".storyboard") || compiledUIFilePath.hasSuffix(".xib") else {
+            throw logger.fatalError(forMessage: "row has no .stroyboard or .xib!\nLine:\n\(line)")
+        }
+        let uiFilePath = regex.captureGroup(2, originalString: line)
+        var moduleName = ""
+        if let moduleRegex = line.match(regex: "--module (.*?) ").first {
+            moduleName = moduleRegex.captureGroup(1, originalString: line)
+        }
+        guard !moduleName.isEmpty else {
+            throw logger.fatalError(forMessage: "Failed to extract module name from UI File row (unrecognized pattern)\nLine:\n\(line)")
+        }
+        let file = File(path: uiFilePath.removingPlaceholder)
+        add(userInterface: file, to: moduleName, modules: &modules)
+    }
 }
 
 extension SchemeInfoProvider {
@@ -183,6 +210,15 @@ extension SchemeInfoProvider {
         registerFoundModuleIfNeeded(moduleName, modules: &modules)
         modules[moduleName]?.plists.append(plist)
     }
+    
+    private func add(userInterface: File, to moduleName: String, modules: inout MutableModuleDictionary) {
+        let fileExt = URL(fileURLWithPath: userInterface.path).lastPathComponent
+        guard fileExt.hasSuffix("storyboard") || fileExt.hasSuffix("xib") else {
+            return
+        }
+        registerFoundModuleIfNeeded(moduleName, modules: &modules)
+        modules[moduleName]?.userInterfaces.append(userInterface)
+    }
 
     private func set(compilerArgs: [String], to moduleName: String, modules: inout MutableModuleDictionary) {
         registerFoundModuleIfNeeded(moduleName, modules: &modules)
@@ -193,7 +229,7 @@ extension SchemeInfoProvider {
         guard modules[moduleName] == nil else {
             return
         }
-        let moduleData: MutableModuleData = ([], [], [], modules.count)
+        let moduleData: MutableModuleData = ([], [], [], [], modules.count)
         modules[moduleName] = moduleData
     }
 }
