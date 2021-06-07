@@ -79,3 +79,19 @@ extension String {
         return utf8.count
     }
 }
+
+extension String {
+    var userHomeDirectoryPath: String {
+        if #available(OSX 10.12, *) {
+            return FileManager.default.homeDirectoryForCurrentUser.path
+        } else {
+            return NSHomeDirectory()
+        }
+    }
+    
+    var filePath: String {
+        let pathToGo = starts(with: "~/") ? replacingCharacters(in: startIndex...startIndex, with: userHomeDirectoryPath) : self
+        return URL(fileURLWithPath: pathToGo).resolvingSymlinksInPath().path
+    }
+}
+

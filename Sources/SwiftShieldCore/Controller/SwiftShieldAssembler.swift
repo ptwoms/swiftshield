@@ -16,7 +16,7 @@ public enum SwiftSwiftAssembler {
             printSourceKit: printSourceKitQueries
         )
 
-        let projectFile = File(path: projectPath)
+        let projectFile = File(path: projectPath.filePath)
         let taskRunner = TaskRunner()
         let infoProvider = SchemeInfoProvider(
             projectFile: projectFile,
