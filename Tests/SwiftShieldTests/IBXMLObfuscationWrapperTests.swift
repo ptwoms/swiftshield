@@ -63,10 +63,8 @@ final class IBXMLObfuscationWrapperTests: XCTestCase {
         try FileManager.default.removeItem(atPath: filePath)
     }
     
-    
     func testXIBObfuscation() throws {
-        let filePath = fileBasepath + "/TestView.xib"
-        try xibXML.write(toFile: filePath, atomically: true, encoding: .utf8)
+        let filePath = Bundle.module.path(forResource: "TestData/TestView", ofType: "xib")!
         let xmlWrapper = IBXMLObfuscationWrapper(obfuscationDictionary: [
             "TestViewViewController" : "IBOBXX1",
             "buttonClicked": "IBOBXX2",
@@ -78,8 +76,30 @@ final class IBXMLObfuscationWrapperTests: XCTestCase {
             "P2MSLayoutConstraint": "IBOBXX8"
         ])
         let resultXML = try xmlWrapper.obfuscate(file: File(path: filePath))
-        XCTAssert(resultXML == xibObfuscatedXML)
-        try FileManager.default.removeItem(atPath: filePath)
+        let verifyXML = try File(path: Bundle.module.path(forResource: "TestData/TestViewObfuscated", ofType: "xib")!).read()
+        XCTAssert(resultXML.trimmingCharacters(in: .whitespacesAndNewlines) == verifyXML.trimmingCharacters(in: .whitespacesAndNewlines))
+    }
+    
+    func testStoryboardObfuscation() throws {
+        let filePath = Bundle.module.path(forResource: "TestData/Main", ofType: "storyboard")!
+        let xmlWrapper = IBXMLObfuscationWrapper(obfuscationDictionary: [
+            "ViewController" : "IBOBXX1",
+            "buttonClicked": "IBOBXX2",
+            "P2MSStoryboardSegue": "IBOBXX3",
+            "NewViewController" : "IBOBXX4",
+            "switchValueChanged": "IBOBXX5",
+            "P2MSButton": "IBOBXX6",
+            "btnClicked": "IBOBXX7",
+            "AnotherViewController": "IBOBXX8",
+            "P2MSLayoutConstraint": "IBOBXX9",
+            "P2MSCustomBaseView": "IBOBXX10",
+            "someConnection": "IBOBXX11"
+        ])
+        let resultXML = try xmlWrapper.obfuscate(file: File(path: filePath))
+        let verifyXML = try File(path: Bundle.module.path(forResource: "TestData/MainObfuscated", ofType: "storyboard")!).read()
+        print(resultXML)
+        print(verifyXML)
+        XCTAssert(resultXML.trimmingCharacters(in: .whitespacesAndNewlines) == verifyXML.trimmingCharacters(in: .whitespacesAndNewlines))
     }
 }
 
