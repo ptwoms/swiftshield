@@ -6,6 +6,7 @@ struct SchemeInfoProvider: SchemeInfoProviderProtocol {
     let taskRunner: TaskRunnerProtocol
     let logger: LoggerProtocol
     let modulesToIgnore: Set<String>
+    let includeIBXMLs: Bool
 
     var isWorkspace: Bool {
         projectFile.path.hasSuffix(".xcworkspace")
@@ -46,9 +47,9 @@ struct SchemeInfoProvider: SchemeInfoProviderProtocol {
                 line.hasPrefix("CopyPlistFile") ||
                 line.hasPrefix("Preprocess") {
                 try parsePlistPhase(line: line + lines[index + 1], modules: &modules)
-            }else if line.hasPrefix("CompileStoryboard") ||
+            }else if includeIBXMLs, line.hasPrefix("CompileStoryboard") ||
                 line.hasPrefix("CompileXIB") {
-                try parseUIsPhase(line: line + lines[index + 1] + lines[index + 2] + lines[index + 3], modules: &modules)
+                try parseUIsPhase(line: line + (lines[safe: index + 1] ?? "") + (lines[safe: index + 2] ?? "") + (lines[safe: index + 3] ?? ""), modules: &modules)
             }
         }
         return modules.filter { modulesToIgnore.contains($0.key) == false }.sorted { $0.value.order < $1.value.order }.map {

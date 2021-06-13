@@ -36,7 +36,8 @@ func testModule(
         schemeName: "FeatureTestProject",
         taskRunner: TaskRunner(),
         logger: DummyLogger(),
-        modulesToIgnore: []
+        modulesToIgnore: [],
+        includeIBXMLs: false
     )
 
     try File(path: modifiableFilePath).write(contents: contents)

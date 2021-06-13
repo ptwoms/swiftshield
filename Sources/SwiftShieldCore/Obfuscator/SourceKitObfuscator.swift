@@ -145,9 +145,11 @@ extension SourceKitObfuscator {
         try dataStore.plists.forEach { plist in
             try obfuscate(plist: plist)
         }
-        let xmlObfuscationWrapper = IBXMLObfuscationWrapper(obfuscationDictionary: dataStore.obfuscationDictionary)
-        try dataStore.uiFiles.forEach { uiFile in
-            try obfuscate(uiFile: uiFile, xmlObfuscator: xmlObfuscationWrapper)
+        if !dataStore.uiFiles.isEmpty {
+            let xmlObfuscationWrapper = IBXMLObfuscationWrapper(obfuscationDictionary: dataStore.obfuscationDictionary)
+            try dataStore.uiFiles.forEach { uiFile in
+                try obfuscate(uiFile: uiFile, xmlObfuscator: xmlObfuscationWrapper)
+            }
         }
         return ConversionMap(obfuscationDictionary: dataStore.obfuscationDictionary)
     }
