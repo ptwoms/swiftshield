@@ -48,7 +48,6 @@ final class IBXMLObfuscationWrapper {
         }
         if element.name == "action", let selectorElement = element.attribute(forName: "selector"), element.parent?.name == "connections", let selectorStr = selectorElement.stringValue, !selectorStr.isEmpty {
             let selectorModule = (try? getSelectorModule(element: element, document: document)) ?? ""
-            print("Selector str: \(selectorStr) in module: \(selectorModule)")
             if selectorModule.isEmpty || !modulesToIgnore.contains(selectorModule) {
                 if selectorStr.contains(":") {
                     var selectorComps = selectorStr.components(separatedBy: ":")
