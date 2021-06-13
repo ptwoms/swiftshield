@@ -12,7 +12,7 @@ struct SchemeInfoProvider: SchemeInfoProviderProtocol {
         projectFile.path.hasSuffix(".xcworkspace")
     }
 
-    private typealias MutableModuleData = (source: [File], plists: [File], userInterfaces: [File], args: [String], order: Int)
+    private typealias MutableModuleData = (source: [File], plists: [File], ibXMLs: [File], args: [String], order: Int)
     private typealias MutableModuleDictionary = [String: MutableModuleData]
 
     func getModulesFromProject() throws -> [Module] {
@@ -56,7 +56,7 @@ struct SchemeInfoProvider: SchemeInfoProviderProtocol {
             Module(name: $0.key,
                    sourceFiles: Set($0.value.source),
                    plists: Set($0.value.plists.removeDuplicates()),
-                   uiFiles: Set($0.value.userInterfaces),
+                   uiFiles: Set($0.value.ibXMLs),
                    compilerArguments: $0.value.args)
         }
     }
@@ -193,7 +193,7 @@ struct SchemeInfoProvider: SchemeInfoProviderProtocol {
             throw logger.fatalError(forMessage: "Failed to extract module name from UI File row (unrecognized pattern)\nLine:\n\(line)")
         }
         let file = File(path: uiFilePath.removingPlaceholder)
-        add(userInterface: file, to: moduleName, modules: &modules)
+        add(ibXML: file, to: moduleName, modules: &modules)
     }
 }
 
@@ -212,13 +212,13 @@ extension SchemeInfoProvider {
         modules[moduleName]?.plists.append(plist)
     }
     
-    private func add(userInterface: File, to moduleName: String, modules: inout MutableModuleDictionary) {
-        let fileExt = URL(fileURLWithPath: userInterface.path).lastPathComponent
+    private func add(ibXML: File, to moduleName: String, modules: inout MutableModuleDictionary) {
+        let fileExt = URL(fileURLWithPath: ibXML.path).lastPathComponent
         guard fileExt.hasSuffix("storyboard") || fileExt.hasSuffix("xib") else {
             return
         }
         registerFoundModuleIfNeeded(moduleName, modules: &modules)
-        modules[moduleName]?.userInterfaces.append(userInterface)
+        modules[moduleName]?.ibXMLs.append(ibXML)
     }
 
     private func set(compilerArgs: [String], to moduleName: String, modules: inout MutableModuleDictionary) {
