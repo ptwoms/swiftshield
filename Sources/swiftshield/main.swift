@@ -26,7 +26,7 @@ extension Swiftshield {
         @Flag(help: "Don't obfuscate content that is 'public' or 'open' (a.k.a 'SDK Mode').")
         var ignorePublic: Bool
         
-        @Flag(name: .shortAndLong, help: "obfuscate storyboard and xib files.")
+        @Flag(help: "obfuscate storyboard and xib files. (experimental)")
         var includeIbxmls: Bool
 
         @Flag(name: .shortAndLong, help: "Prints additional information.")
