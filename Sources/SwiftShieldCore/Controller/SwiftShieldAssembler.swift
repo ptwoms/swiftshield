@@ -34,7 +34,8 @@ public enum SwiftSwiftAssembler {
             logger: logger,
             dataStore: .init(),
             namesToIgnore: namesToIgnore,
-            ignorePublic: ignorePublic
+            ignorePublic: ignorePublic,
+            modulesToIgnore: modulesToIgnore
         )
 
         let interactor = SwiftShieldInteractor(

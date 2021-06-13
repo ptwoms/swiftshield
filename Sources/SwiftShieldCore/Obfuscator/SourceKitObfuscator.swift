@@ -6,14 +6,16 @@ final class SourceKitObfuscator: ObfuscatorProtocol {
     let dataStore: SourceKitObfuscatorDataStore
     let ignorePublic: Bool
     let namesToIgnore: Set<String>
+    let modulesToIgnore: Set<String>
     weak var delegate: ObfuscatorDelegate?
 
-    init(sourceKit: SourceKit, logger: LoggerProtocol, dataStore: SourceKitObfuscatorDataStore, namesToIgnore: Set<String>, ignorePublic: Bool) {
+    init(sourceKit: SourceKit, logger: LoggerProtocol, dataStore: SourceKitObfuscatorDataStore, namesToIgnore: Set<String>, ignorePublic: Bool, modulesToIgnore: Set<String>) {
         self.sourceKit = sourceKit
         self.logger = logger
         self.dataStore = dataStore
         self.ignorePublic = ignorePublic
         self.namesToIgnore = namesToIgnore
+        self.modulesToIgnore = modulesToIgnore
     }
 
     var requests: sourcekitd_requests! {
@@ -146,7 +148,7 @@ extension SourceKitObfuscator {
             try obfuscate(plist: plist)
         }
         if !dataStore.uiFiles.isEmpty {
-            let xmlObfuscationWrapper = IBXMLObfuscationWrapper(obfuscationDictionary: dataStore.obfuscationDictionary)
+            let xmlObfuscationWrapper = IBXMLObfuscationWrapper(obfuscationDictionary: dataStore.obfuscationDictionary, modulesToIgnore: modulesToIgnore)
             try dataStore.uiFiles.forEach { uiFile in
                 try obfuscate(uiFile: uiFile, xmlObfuscator: xmlObfuscationWrapper)
             }

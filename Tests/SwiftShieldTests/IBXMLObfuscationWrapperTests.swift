@@ -36,7 +36,7 @@ final class IBXMLObfuscationWrapperTests: XCTestCase {
         let xmlWrapper = IBXMLObfuscationWrapper(obfuscationDictionary: [
             "TestViewViewController" : "IBOBXX1",
             "buttonClicked": "IBOBXX2"
-        ])
+        ], modulesToIgnore: [])
         let resultXML = try xmlWrapper.obfuscate(file: File(path: filePath))
         let obfuscatedXML = """
         <?xml version="1.0" encoding="UTF-8"?>
@@ -74,7 +74,7 @@ final class IBXMLObfuscationWrapperTests: XCTestCase {
             "P2MSTapGesture": "IBOBXX6",
             "tapped": "IBOBXX7",
             "P2MSLayoutConstraint": "IBOBXX8"
-        ])
+        ], modulesToIgnore: [])
         let resultXML = try xmlWrapper.obfuscate(file: File(path: filePath))
         let verifyXML = try File(path: Bundle.module.path(forResource: "TestData/TestViewObfuscated", ofType: "xib")!).read()
         XCTAssert(resultXML.trimmingCharacters(in: .whitespacesAndNewlines) == verifyXML.trimmingCharacters(in: .whitespacesAndNewlines))
@@ -94,12 +94,41 @@ final class IBXMLObfuscationWrapperTests: XCTestCase {
             "P2MSLayoutConstraint": "IBOBXX9",
             "P2MSCustomBaseView": "IBOBXX10",
             "someConnection": "IBOBXX11"
-        ])
+        ], modulesToIgnore: [])
         let resultXML = try xmlWrapper.obfuscate(file: File(path: filePath))
         let verifyXML = try File(path: Bundle.module.path(forResource: "TestData/MainObfuscated", ofType: "storyboard")!).read()
         print(resultXML)
         print(verifyXML)
         XCTAssert(resultXML.trimmingCharacters(in: .whitespacesAndNewlines) == verifyXML.trimmingCharacters(in: .whitespacesAndNewlines))
+    }
+    
+    //Old tests from 3.5.1
+    private func path(for name: String, ofType type: String) -> String {
+        let bundle = Bundle.module
+        return bundle.path(forResource: "TestData/\(name)", ofType: type)!
+    }
+
+    private func loadFile(_ name: String, ofType type: String) throws -> String {
+        let filePath = path(for: name, ofType: type)
+        return try File(path: filePath).read()
+    }
+
+    let obfuscationDict: [String: String] = ["ViewController": "AAAAClass", "MainModuleView": "AAAAClass2", "ThirdModuleView": "CCCCClass", "OtherModuleButton": "BBBBClass", "otherModuleButtonMethod": "AAAASelector"]
+    
+    func testStoryboardObfuscationLegacy() {
+        let xmlWrapper = IBXMLObfuscationWrapper(obfuscationDictionary: obfuscationDict, modulesToIgnore: [])
+        let filePathSB = path(for: "MockStoryboard", ofType: "txt")
+        XCTAssertEqual(try xmlWrapper.obfuscate(file: File(path: filePathSB)).trimmingCharacters(in: .whitespacesAndNewlines), try loadFile("ExpectedMockStoryboard", ofType: "txt").trimmingCharacters(in: .whitespacesAndNewlines))
+        
+        let filePathXib = path(for: "MockXib", ofType: "txt")
+        XCTAssertEqual(try xmlWrapper.obfuscate(file: File(path: filePathXib)).trimmingCharacters(in: .whitespacesAndNewlines), try loadFile("ExpectedMockXib", ofType: "txt").trimmingCharacters(in: .whitespacesAndNewlines))
+
+    }
+    
+    func testStoryboardObfuscationLegacyWithIgnoreModules() {
+        let xmlWrapper = IBXMLObfuscationWrapper(obfuscationDictionary: obfuscationDict, modulesToIgnore: ["MainModule"])
+        let filePathSB = path(for: "MockStoryboard", ofType: "txt")
+        XCTAssertEqual(try xmlWrapper.obfuscate(file: File(path: filePathSB)).trimmingCharacters(in: .whitespacesAndNewlines), try loadFile("ExpectedMockStoryboardIgnoringMainModule", ofType: "txt").trimmingCharacters(in: .whitespacesAndNewlines))
     }
 }
 
