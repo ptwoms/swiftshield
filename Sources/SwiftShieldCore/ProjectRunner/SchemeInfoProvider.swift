@@ -177,7 +177,7 @@ struct SchemeInfoProvider: SchemeInfoProviderProtocol {
         let prefixStoryboard = "CompileStoryboard"
         let prefixXIB = "CompileXIB"
         let line = line.replacingEscapedSpaces
-        guard let regex = line.match(regex: "(\(prefixStoryboard)|\(prefixXIB)) ((.*.storyboard)|(.*.xib)) ").first else {
+        guard let regex = line.match(regex: "(\(prefixStoryboard)|\(prefixXIB)) ((.*?\\.storyboard)|(.*?\\.xib)) ").first else {
             return
         }
         let compileIBXMLFilePath = regex.captureGroup(2, originalString: line)
