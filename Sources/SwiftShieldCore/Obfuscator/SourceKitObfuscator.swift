@@ -55,7 +55,7 @@ extension SourceKitObfuscator {
             self.dataStore.indexedFiles.append(indexedFile)
         }
         dataStore.plists = dataStore.plists.union(module.plists)
-        dataStore.uiFiles = dataStore.uiFiles.union(module.uiFiles)
+        dataStore.ibxmls = dataStore.ibxmls.union(module.ibxmls)
     }
 
     func preprocess(
@@ -147,10 +147,10 @@ extension SourceKitObfuscator {
         try dataStore.plists.forEach { plist in
             try obfuscate(plist: plist)
         }
-        if !dataStore.uiFiles.isEmpty {
+        if !dataStore.ibxmls.isEmpty {
             let xmlObfuscationWrapper = IBXMLObfuscationWrapper(obfuscationDictionary: dataStore.obfuscationDictionary, modulesToIgnore: modulesToIgnore)
-            try dataStore.uiFiles.forEach { uiFile in
-                try obfuscate(uiFile: uiFile, xmlObfuscator: xmlObfuscationWrapper)
+            try dataStore.ibxmls.forEach { xmlFile in
+                try obfuscate(ibxml: xmlFile, xmlObfuscator: xmlObfuscationWrapper)
             }
         }
         return ConversionMap(obfuscationDictionary: dataStore.obfuscationDictionary)
@@ -207,10 +207,10 @@ extension SourceKitObfuscator {
         }
     }
     
-    func obfuscate(uiFile: File, xmlObfuscator: IBXMLObfuscationWrapper) throws {
-        logger.log("--- Obfuscating \(uiFile.name)")
-        let newContents = try xmlObfuscator.obfuscate(file: uiFile)
-        if let error = self.delegate?.obfuscator(self, didObfuscateFile: uiFile, newContents: newContents) {
+    func obfuscate(ibxml: File, xmlObfuscator: IBXMLObfuscationWrapper) throws {
+        logger.log("--- Obfuscating \(ibxml.name)")
+        let newContents = try xmlObfuscator.obfuscate(file: ibxml)
+        if let error = self.delegate?.obfuscator(self, didObfuscateFile: ibxml, newContents: newContents) {
             throw error
         }
     }

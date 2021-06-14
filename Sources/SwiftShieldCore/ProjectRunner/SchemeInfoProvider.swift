@@ -56,7 +56,7 @@ struct SchemeInfoProvider: SchemeInfoProviderProtocol {
             Module(name: $0.key,
                    sourceFiles: Set($0.value.source),
                    plists: Set($0.value.plists.removeDuplicates()),
-                   uiFiles: Set($0.value.ibXMLs),
+                   ibxmls: Set($0.value.ibXMLs),
                    compilerArguments: $0.value.args)
         }
     }
@@ -180,11 +180,10 @@ struct SchemeInfoProvider: SchemeInfoProviderProtocol {
         guard let regex = line.match(regex: "(\(prefixStoryboard)|\(prefixXIB)) ((.*.storyboard)|(.*.xib)) ").first else {
             return
         }
-        let compiledUIFilePath = regex.captureGroup(2, originalString: line)
-        guard compiledUIFilePath.hasSuffix(".storyboard") || compiledUIFilePath.hasSuffix(".xib") else {
+        let compileIBXMLFilePath = regex.captureGroup(2, originalString: line)
+        guard compileIBXMLFilePath.hasSuffix(".storyboard") || compileIBXMLFilePath.hasSuffix(".xib") else {
             throw logger.fatalError(forMessage: "row has no .stroyboard or .xib!\nLine:\n\(line)")
         }
-        let uiFilePath = regex.captureGroup(2, originalString: line)
         var moduleName = ""
         if let moduleRegex = line.match(regex: "--module (.*?) ").first {
             moduleName = moduleRegex.captureGroup(1, originalString: line)
@@ -192,7 +191,7 @@ struct SchemeInfoProvider: SchemeInfoProviderProtocol {
         guard !moduleName.isEmpty else {
             throw logger.fatalError(forMessage: "Failed to extract module name from UI File row (unrecognized pattern)\nLine:\n\(line)")
         }
-        let file = File(path: uiFilePath.removingPlaceholder)
+        let file = File(path: compileIBXMLFilePath.removingPlaceholder)
         add(ibXML: file, to: moduleName, modules: &modules)
     }
 }

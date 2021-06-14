@@ -20,12 +20,12 @@ final class IBXMLObfuscationWrapper {
         guard let rootElement = xmlDoc.rootElement() else { return "" }
         obfuscateIBXML(element: rootElement, document: xmlDoc)
         let origStr = try file.read()
-        var newUIFile = xmlDoc.xmlString(options: [.nodePrettyPrint, .nodeCompactEmptyElement])
+        var newIBXMLFile = xmlDoc.xmlString(options: [.nodePrettyPrint, .nodeCompactEmptyElement])
         let xmlLineRegex = "<\\?xml version=.*?\\?>"
         if let oldXMLRange = origStr.range(of: xmlLineRegex, options: .regularExpression) {
-            newUIFile.replaceFirst(regex: xmlLineRegex, with: String(origStr[oldXMLRange]))
+            newIBXMLFile.replaceFirst(regex: xmlLineRegex, with: String(origStr[oldXMLRange]))
         }
-        return newUIFile
+        return newIBXMLFile
     }
     
     private func getSelectorModule(element: XMLElement, document: XMLDocument) throws -> String {
