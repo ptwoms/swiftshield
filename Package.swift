@@ -10,7 +10,7 @@ let package = Package(
         .library(name: "SwiftShieldCore", targets: ["SwiftShieldCore"]),
     ],
     dependencies: [
-        .package(url: "https://github.com/apple/swift-argument-parser.git", .exact("0.0.2")),
+        .package(url: "https://github.com/apple/swift-argument-parser.git", .exact("1.5.0")),
     ],
     targets: [
         // Csourcekitd: C modules wrapper for sourcekitd.

@@ -17,28 +17,28 @@ extension Swiftshield {
         @Option(name: .shortAndLong, help: "The main scheme from the project to build.")
         var scheme: String
 
-        @Option(name: .shortAndLong, help: "A list of targets, separated by a comma, that should NOT be obfuscated.")
+        @Option(help: "A list of targets, separated by a comma, that should NOT be obfuscated.")
         var ignoreTargets: String?
         
-        @Option(name: .shortAndLong, help: "A list of names, separated by a comma, that should NOT be obfuscated.")
+        @Option(help: "A list of names, separated by a comma, that should NOT be obfuscated.")
         var ignoreNames: String?
 
         @Flag(help: "Don't obfuscate content that is 'public' or 'open' (a.k.a 'SDK Mode').")
-        var ignorePublic: Bool
+        var ignorePublic: Bool = false
         
         @Flag(help: "obfuscate storyboard and xib files. (experimental)")
-        var includeIbxmls: Bool
+        var includeIbxmls: Bool = false
 
         @Flag(name: .shortAndLong, help: "Prints additional information.")
-        var verbose: Bool
+        var verbose: Bool = false
 
         @Flag(name: .shortAndLong, help: "Does not actually overwrite the files.")
-        var dryRun: Bool
+        var dryRun: Bool = false
 
         @Flag(help: "Prints SourceKit queries. Note that they are huge, so use this only for bug reports and development!")
-        var printSourcekit: Bool
+        var printSourcekit: Bool = false
 
-        func run() throws {
+        mutating func run() throws {
             let modulesToIgnore = Set((ignoreTargets ?? "").components(separatedBy: ","))
             let namesToIgnore = Set((ignoreNames ?? "").components(separatedBy: ","))
             let runner = SwiftSwiftAssembler.generate(
