@@ -208,7 +208,7 @@ extension SourceKitObfuscator {
     }
     
     func obfuscate(ibxml: File, xmlObfuscator: IBXMLObfuscationWrapper) throws {
-        logger.log("--- Obfuscating \(ibxml.name)")
+        logger.log("--- Obfuscating ibxml \(ibxml.name)")
         let newContents = try xmlObfuscator.obfuscate(file: ibxml)
         if let error = self.delegate?.obfuscator(self, didObfuscateFile: ibxml, newContents: newContents) {
             throw error

@@ -101,4 +101,11 @@ extension String {
             replaceSubrange(range, with: string)
         }
     }
+
+    var withPathSeparator: String {
+        if hasSuffix("/") {
+            return self
+        }
+        return self + "/"
+    }
 }

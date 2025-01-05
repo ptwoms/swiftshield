@@ -10,14 +10,14 @@ public enum SwiftSwiftAssembler {
         includeIBXMLs: Bool,
         dryRun: Bool,
         verbose: Bool,
-        printSourceKitQueries: Bool
-    ) -> SwiftShieldController {
+        printSourceKitQueries: Bool,
+        outputPath: String?
+    ) throws -> SwiftShieldController {
         let logger = Logger(
             verbose: verbose,
             printSourceKit: printSourceKitQueries
         )
-
-        let projectFile = File(path: projectPath.filePath)
+        let projectFile = try getProjectFile(projectPath: projectPath.filePath, outputPath: outputPath?.filePath)
         let taskRunner = TaskRunner()
         let infoProvider = SchemeInfoProvider(
             projectFile: projectFile,
@@ -50,4 +50,19 @@ public enum SwiftSwiftAssembler {
             dryRun: dryRun
         )
     }
+    
+    private static func getProjectFile(projectPath: String, outputPath: String?) throws -> File {
+        guard let sourceURL = URL(string: projectPath) else {
+            throw SwiftSheildError.fileNotFound(projectPath)
+        }
+        let projectFolder = sourceURL.deletingLastPathComponent()
+        if let outputFolderPath = outputPath?.withPathSeparator, outputFolderPath != projectFolder.path.withPathSeparator {
+            let projectName = sourceURL.lastPathComponent
+            try FileManager.default.copyDirectory(from: projectFolder.path, to: outputFolderPath, clear: true)
+            return File(path: outputFolderPath + projectName)
+        } else {
+            return File(path: projectPath.filePath)
+        }
+    }
 }
+

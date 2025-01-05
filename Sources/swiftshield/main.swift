@@ -16,7 +16,7 @@ extension Swiftshield {
 
         @Option(name: .shortAndLong, help: "The main scheme from the project to build.")
         var scheme: String
-
+        
         @Option(help: "A list of targets, separated by a comma, that should NOT be obfuscated.")
         var ignoreTargets: String?
         
@@ -34,22 +34,26 @@ extension Swiftshield {
 
         @Flag(name: .shortAndLong, help: "Does not actually overwrite the files.")
         var dryRun: Bool = false
+        
+        @Option(help: "Output path for the obfuscated project. Default to in-place replacement. Make sure that all source codes are in the project directory")
+        var outputPath: String?
 
         @Flag(help: "Prints SourceKit queries. Note that they are huge, so use this only for bug reports and development!")
         var printSourcekit: Bool = false
 
         mutating func run() throws {
-            let modulesToIgnore = Set((ignoreTargets ?? "").components(separatedBy: ","))
-            let namesToIgnore = Set((ignoreNames ?? "").components(separatedBy: ","))
-            let runner = SwiftSwiftAssembler.generate(
-                projectPath: projectFile, scheme: scheme,
+            let modulesToIgnore = Set((self.ignoreTargets ?? "").components(separatedBy: ","))
+            let namesToIgnore = Set((self.ignoreNames ?? "").components(separatedBy: ","))
+            let runner = try SwiftSwiftAssembler.generate(
+                projectPath: self.projectFile, scheme: self.scheme,
                 modulesToIgnore: modulesToIgnore,
                 namesToIgnore: namesToIgnore,
-                ignorePublic: ignorePublic,
-                includeIBXMLs: includeIbxmls,
-                dryRun: dryRun,
-                verbose: verbose,
-                printSourceKitQueries: printSourcekit
+                ignorePublic: self.ignorePublic,
+                includeIBXMLs: self.includeIbxmls,
+                dryRun: self.dryRun,
+                verbose: self.verbose,
+                printSourceKitQueries: self.printSourcekit,
+                outputPath: self.outputPath
             )
             try runner.run()
         }
